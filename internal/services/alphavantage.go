@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ValTrexx/cs/internal/models"
+	"github.com/ValTrexx/hackathon/internal/models"
 )
 
 type alphaResponse struct {
@@ -28,7 +28,7 @@ var client = &http.Client{
 
 func FetchMarket(symbol string) (models.Market, error) {
 
-	apiKey := os.Getenv("PVJTUC3J4HTITE9P")
+	apiKey := os.Getenv("ALPHA_VANTAGE_API_KEY")
 
 	url := fmt.Sprintf(
 		"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=%s&apikey=%s",

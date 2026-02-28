@@ -1,48 +1,24 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
-	"sync"
 
-	"yourproject/internal/api"
-	"yourproject/internal/models"
-	"yourproject/internal/scheduler"
-	"yourproject/internal/worker"
+	"github.com/ValTrexx/hackathon/internal/services"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
 
-	// Channels
-	jobs := make(chan models.Job, 10)
-	results := make(chan models.Result, 10)
-
-	// In-memory storage
-	store := make(map[string]models.Result)
-	var mu sync.RWMutex
-
-	// Start worker pool
-	workerCount := 3
-	for i := 0; i < workerCount; i++ {
-		go worker.StartWorker(i, jobs, results)
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env")
 	}
 
-	// Start results aggregator
-	go func() {
-		for res := range results {
-			mu.Lock()
-			store[res.Country] = res
-			mu.Unlock()
-		}
-	}()
+	market, err := services.FetchMarket("IBM")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// Start scheduler
-	go scheduler.StartScheduler(jobs)
-
-	// Setup HTTP handlers
-	http.HandleFunc("/risk", api.GetAllRisk(&store, &mu))
-	http.HandleFunc("/risk/", api.GetRiskByCountry(&store, &mu))
-
-	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Printf("%+v\n", market)
 }
